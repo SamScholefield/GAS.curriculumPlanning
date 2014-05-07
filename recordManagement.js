@@ -10,14 +10,18 @@
 
   var termArray = ["", "1.1", "1.2", "2.1", "2.2", "3.1", "3.2"];
   
-  var conceptualArray = ["", "Rhythm", "Harmony", "Form", "Colour", "Value", "Shape", "Space", "Proportion", "Symmetry", "Probability", "Pattern",
-                         "Order", "System", "Organism", "Power", "Relationships", "Envy", "Emotions", "Oppression", "Influence", "Organisation",
-                         "Population", "Evolution", "Cycle", "Interaction", "Energy", "Balance", "Change", "Continuity", "Culture", "Civilisation",
-                         "Migration", "Interdependence", "Prejudice", "Perspective", "Conventions", "Fluency", "Symbolism", "Metaphor", "Complexity",
-                         "Beliefs", "Paradox", "Freedom", "Identity", "Origins", "Revolution", "Structure", "Function", "Innovation", "Design", "Force",
-                         "Creativity"];
-
-//{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{ DISPLAY }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+  var conceptualArray = ["", "Balance", "Beliefs", "Change", "Civilisation", "Colour", "Complexity", "Continuity", "Conventions", "Creativity",
+                         "Culture", "Cycle", "Design", "Emotions", "Energy", "Envy", "Evolution", "Fluency", "Force", "Form", "Freedom", "Function",
+                         "Harmony", "Identity", "Influence", "Innovation", "Interaction", "Interdependence", "Metaphor", "Migration", "Oppression",
+                         "Order", "Organisation", "Organism", "Origins", "Paradox", "Pattern", "Perspective", "Population", "Power", "Prejudice",
+                         "Probability", "Proportion", "Relationships", "Revolution", "Rhythm", "Shape", "Space", "Structure", "Symbolism", "Symmetry",
+                         "System", "Value"];
+                         
+  var patsKeyArray = ["informationAndMediaLiteracy", "takeInitiative", "knowledgeable", "criticalAnalysisAndEvaluation", "digitalApplicationsInMakingMovingImage",
+                      "enquire", "principled", "metacognition", "researchSkills", "planNarrativesMovingImageProduction", "openMindedInternationallyMinded", "problemSolving",
+                      "collaborate", "caring", "synthesiseDesignCreateMake", "courageous", "communicate", "balanced", "reflectReview", "resilientResourceful"];
+                      
+ //{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{ DISPLAY }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 function doGet() {
   Logger.log("running display function");
   var app = UiApp.createApplication();  
@@ -40,7 +44,7 @@ function doGet() {
   var createHandler = app.createServerHandler("form");
   var searchHandler = app.createServerHandler("searchDisplay")
   var editHandler = app.createServerHandler("editRecord");
-  var printHandler = app.createServerHandler("openRecord");  
+  var openHandler = app.createServerHandler("openDocument");  
   
   var hPanel = app.createHorizontalPanel();
   var panel = app.createFlowPanel().setSize("900px", "6000px").setStyleAttributes({background: light, border: "1px solid #E0E0E0"}).setId("panel");
@@ -70,7 +74,7 @@ function doGet() {
   
   if(recordRange != 0){
     anyRecords = true;
-    var libRange = libSheet.getRange(2, 1, recordRange, 9);  
+    var libRange = libSheet.getRange(2, 1, recordRange, 38);  
     var recordObjects = getRowsData(libSheet, libRange);    
   }
 
@@ -115,7 +119,8 @@ function doGet() {
                .setWidget(0, 3, app.createLabel("Date created")).setStyleAttribute(0, 3, "text-align", "center")
                .setWidget(0, 4, app.createLabel("Status")).setStyleAttribute(0, 4, "text-align", "center")
                .setWidget(0, 5, app.createLabel(""))
-               .setWidget(0, 6, app.createLabel(""));
+               .setWidget(0, 6, app.createLabel(""))
+               .setRowStyleAttribute(0, "height", "40px");;
   
   var userRecords = [];
   
@@ -151,6 +156,8 @@ function doGet() {
     openText = "autOpen_";  
   }
   
+  //Logger.log(userRecords[0].docurl);
+  
   for(var i = 0; i < userRecords.length; i++){
     
     flex.setText(i+1, 0, userRecords[i].documentId)
@@ -158,10 +165,16 @@ function doGet() {
         .setText(i+1, 2, userRecords[i].subject)
         .setText(i+1, 3, shortDate(userRecords[i].dateCreated)).setStyleAttribute(i+1, 3, "text-align", "center")
         .setText(i+1, 4, userRecords[i].status.toString()).setStyleAttribute(i+1, 4, "text-align", "center")
-        .setWidget(i+1, 5, app.createButton("edit").setId(editText + userRecords[i].documentId).addClickHandler(editHandler).setStyleAttributes(smallBtnStyle));        
+        .setWidget(i+1, 5, app.createButton("edit").setId(editText + userRecords[i].documentId).addClickHandler(editHandler).setStyleAttributes(smallBtnStyle))
+        .setRowStyleAttribute(i+1, "height", "40px");        
         
         if(userRecords[i].status.toString() == "Published"){
-          flex.setWidget(i+1, 6, app.createButton("open").setId(openText + userRecords[i].documentId).addClickHandler(printHandler).setStyleAttributes(smallBtnStyle))
+          var openPanel = app.createVerticalPanel();
+          var openBtn = app.createButton("open").setStyleAttributes(smallBtnStyle)
+          var docLink = app.createAnchor("open", userRecords[i].docurl).setStyleAttributes({'zIndex':'10', 'position':'absolute', 'marginLeft':'10px', 'marginTop':'-22px', 'color':'transparent'});
+          openPanel.add(openBtn).add(docLink);
+          flex.setWidget(i+1, 6, openPanel);        
+          //flex.setWidget(i+1, 6, app.createButton("open").setId(userRecords[i].documentId).addClickHandler(openHandler).setStyleAttributes(smallBtnStyle))
           }else{
           flex.setText(i+1, 6, "");
         }
@@ -260,11 +273,11 @@ Success criteria should be observable and measurable.");
 of the content, skills, essential ideas and key concepts that the unit has covered?");
   
 //SAVE BUTTONS
-  var saveBtnOne = app.createButton("<B>save</B>");
-  var saveBtnTwo = app.createButton("<B>save</B>");
-  var saveBtnThree = app.createButton("<B>save</B>");
-  var saveBtnFour = app.createButton("<B>save</B>");
-  var saveBtnFive = app.createButton("<B>save</B>");
+  var saveBtnOne = app.createButton("<B>save</B>").setId("saveBtnOne");
+  var saveBtnTwo = app.createButton("<B>save</B>").setId("saveBtnTwo");
+  var saveBtnThree = app.createButton("<B>save</B>").setId("saveBtnThree");
+  var saveBtnFour = app.createButton("<B>save</B>").setId("saveBtnFour");
+  var saveBtnFive = app.createButton("<B>save</B>").setId("saveBtnFive");
 
 //SAVE LABELS
   var saveLabel1 = app.createLabel("").setId("saveLabel1");
@@ -399,10 +412,11 @@ of the content, skills, essential ideas and key concepts that the unit has cover
   var chk_19 = app.createCheckBox().setName("chk_19");
   var chk_20 = app.createCheckBox().setName("chk_20");
   
-  var techLabel = app.createLabel("Technical skills").setTitle("Identify only the one or two skills that will be explicitly taught within this unit.");
-  var learnLabel = app.createLabel("Learning skills").setTitle("Identify only the one or two skills that will be explicitly taught within this unit.");
-  var persLabel = app.createLabel("Personal skills").setTitle("Identify only the one or two skills that will be explicitly taught within this unit.");
-  var thinkLabel = app.createLabel("Thinking skills").setTitle("Identify only the one or two skills that will be explicitly taught within this unit.");
+  var goalsText = "Identify only the one or two skills that will be explicitly taught within this unit.";
+  var techLabel = app.createLabel("Technical skills").setTitle(goalsText);
+  var learnLabel = app.createLabel("Learning skills").setTitle(goalsText);
+  var persLabel = app.createLabel("Personal skills").setTitle(goalsText);
+  var thinkLabel = app.createLabel("Thinking skills").setTitle(goalsText);
   
   var checkGrid = app.createGrid(8, 6).setWidth("708px").setStyleAttributes({borderCollapse: "collapse"})
                      .setBorderWidth(0)
@@ -413,24 +427,24 @@ of the content, skills, essential ideas and key concepts that the unit has cover
                      .setWidget(0, 5, persLabel)
                      .setWidget(4, 1, thinkLabel)
                      .setWidget(1, 0, chk_01).setText(1, 1, "Information and media literacy")
-                     .setWidget(1, 2, chk_02).setText(1, 3, "Take initiative")
+                     .setWidget(1, 2, chk_02).setText(1, 3, "Taking initiative")
                      .setWidget(1, 4, chk_03).setText(1, 5, "Knowledgeable")
                      .setWidget(5, 0, chk_04).setText(5, 1, "Critical (analysis and evaluation)")
-                     .setWidget(2, 0, chk_05).setText(2, 1, "Digital applications in making moving image")
-                     .setWidget(2, 2, chk_06).setText(2, 3, "Enquire")
+                     .setWidget(2, 0, chk_05).setText(2, 1, "Digital application")
+                     .setWidget(2, 2, chk_06).setText(2, 3, "Enquiring")
                      .setWidget(2, 4, chk_07).setText(2, 5, "Principled")
                      .setWidget(6, 0, chk_08).setText(6, 1, "Metacognition")
-                     .setWidget(3, 0, chk_09).setText(3, 1, "Research skills")
-                     .setWidget(3, 2, chk_10).setText(3, 3, "Plan narratives & moving image production")
-                     .setWidget(3, 4, chk_11).setText(3, 5, "Open minded / Internationally minded")
+                     .setWidget(3, 0, chk_09).setText(3, 1, "Research")
+                     .setWidget(3, 2, chk_10).setText(3, 3, "Planning")
+                     .setWidget(3, 4, chk_11).setText(3, 5, "Open minded")
                      .setWidget(7, 0, chk_12).setText(7, 1, "Problem solving")
-                     .setWidget(4, 2, chk_13).setText(4, 3, "Collaborate")
+                     .setWidget(4, 2, chk_13).setText(4, 3, "Collaborating")
                      .setWidget(4, 4, chk_14).setText(4, 5, "Caring")
                      .setWidget(5, 2, chk_15).setText(5, 3, "Synthesise (design / create / make)")
                      .setWidget(5, 4, chk_16).setText(5, 5, "Courageous")
-                     .setWidget(6, 2, chk_17).setText(6, 3, "Communicate")
+                     .setWidget(6, 2, chk_17).setText(6, 3, "Communicating")
                      .setWidget(6, 4, chk_18).setText(6, 5, "Balanced")
-                     .setWidget(7, 2, chk_19).setText(7, 3, "Reflect / review")
+                     .setWidget(7, 2, chk_19).setText(7, 3, "Reflecting / reviewing")
                      .setWidget(7, 4, chk_20).setText(7, 5, "Resilient / resourceful");  
   
 //GOALS GRIDBOTTOM
@@ -490,9 +504,9 @@ of the content, skills, essential ideas and key concepts that the unit has cover
                           .setStyleAttributes({background: light})
                           .setText(0, 0, "Key concepts").setStyleAttribute(0,0, "width", "200px").setWidget(0, 1, keyText)           
                           .setText(1, 0, "Understanding").setWidget(1, 1, underText)           
-                          .setText(2, 0, "Debatable guiding question").setWidget(2, 1, debatableText)      
-                          .setText(3, 0, "Conceptual guiding question").setWidget(3, 1, conceptualText)      
-                          .setText(4, 0, "Factual guiding question").setWidget(4, 1, factualText)           
+                          .setText(2, 0, "Debatable guiding question/s").setWidget(2, 1, debatableText)      
+                          .setText(3, 0, "Conceptual guiding question/s").setWidget(3, 1, conceptualText)      
+                          .setText(4, 0, "Factual guiding question/s").setWidget(4, 1, factualText)           
                           .setText(5, 0, "Knowledge").setWidget(5, 1, knowText)           
                           .setText(6, 0, "Skills").setWidget(6, 1, skillText);
                           
@@ -544,14 +558,16 @@ of the content, skills, essential ideas and key concepts that the unit has cover
   var saveHandler = app.createServerClickHandler('save');
   saveHandler.addCallbackElement(flow);
   
-  var saveLabelHandler = app.createClientHandler().forTargets(saveLabel1, saveLabel2, saveLabel3, saveLabel4, saveLabel5).setText("saving...");                            
+  var saveLabelHandler = app.createClientHandler().forTargets(saveLabel1, saveLabel2, saveLabel3, saveLabel4, saveLabel5).setText("saving...");
+    
+  var disableHandler = app.createClientHandler().forTargets(saveBtnOne, saveBtnTwo, saveBtnThree, saveBtnFour, saveBtnFive).setEnabled(false);
   
 //ADD HANDLERS
-  saveBtnOne.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnTwo.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnThree.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnFour.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnFive.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
+  saveBtnOne.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnTwo.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnThree.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnFour.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnFive.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
   
 //PANEL STRUCTURE
   flow.add(basicInfoTitle)
@@ -584,6 +600,11 @@ function save(e){
   var app = UiApp.getActiveApplication();  
   var saveLabels = ["saveLabel1", "saveLabel2", "saveLabel3", "saveLabel4", "saveLabel5"];  
   var docIdLabel = app.getElementById("docId");
+  var saveBtnOne = app.getElementById("saveBtnOne");
+  var saveBtnTwo = app.getElementById("saveBtnTwo");
+  var saveBtnThree = app.getElementById("saveBtnThree");
+  var saveBtnFour = app.getElementById("saveBtnFour");
+  var saveBtnFive = app.getElementById("saveBtnFive");
 
 //GET FORM OUTPUT
   var docId = e.parameter.docId_tag;
@@ -592,8 +613,8 @@ function save(e){
   var subjectText = e.parameter.subjectText;
   var subjectIndex = subjectArray.indexOf(subjectText);  
   var department = "=VLOOKUP(R[0]C[-2],Publishers,3,FALSE)";
-  var author = e.parameter.authorText_tag
-  var publisher = "=VLOOKUP(R[0]C[-4],Publishers,2,FALSE)";
+  var authorText = e.parameter.authorText_tag
+  var publisherFormula = "=VLOOKUP(R[0]C[-4],Publishers,2,FALSE)";
   var year = e.parameter.yearText;
   var yearIndex = yearArray.indexOf(year);
   var group = "=VLOOKUP(R[0]C[-2],yearToGroup,2,FALSE)";
@@ -613,7 +634,8 @@ function save(e){
   var knowText = e.parameter.knowText;
   var skillText = e.parameter.skillText;
   var successText = e.parameter.successText;
-  var assessText = e.parameter.assessText; 
+  var assessText = e.parameter.assessText;
+  var docUrl = "";
     
 //GET CHECKBOX OUTPUT
   var chk_01 = e.parameter.chk_01;
@@ -652,7 +674,7 @@ function save(e){
     docId = new Date().getTime().toString();
   } 
   
-  var statusValues = [docId, dateCreatedText, title, subjectText, author, year, group, term, conceptLens, keyConcepts,
+  var statusValues = [docId, dateCreatedText, title, subjectText, authorText, year, group, term, conceptLens, keyConcepts,
                     chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20,
                     unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText, length];
   
@@ -679,19 +701,27 @@ function save(e){
   var status = ((statusCount/23)*100).toFixed(0) + "%";
 
 //SET VALUE ARRAYS AND OBJECTS - YES, RIDICULOUS
-  var values = [docId, dateCreatedText, title, subjectText, subjectIndex, department, author, publisher, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
-                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20];
+  var values = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
+                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl];
                 
-  var values2 = [[docId, dateCreatedText, title, subjectText, subjectIndex, department, author, publisher, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
-                  chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20]];
+  var values2 = [[docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
+                  chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl]];
                   
-  var valuesFull = [docId, dateCreatedText, title, subjectText, subjectIndex, department, author, publisher, status, year, yearIndex,  group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
+  var valuesFull = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex,  group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
                     chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20,
-                    unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText, length];
+                    unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText, length, docUrl];
                     
-  var valuesFull2 = [[docId, dateCreatedText, title, subjectText, subjectIndex, department, author, publisher, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
+  var valuesFull2 = [[docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
                     chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20,
-                    unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText, length]];
+                    unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText, length, docUrl]];
+  
+
+//MOVED VARIABLE SO AS TO ENABLE MAILING ON 100%
+  var recordRange = libSheet.getLastRow()-1; 
+  var libRange = libSheet.getRange(2, 1, recordRange, 38);
+  var recordObjects = getRowsData(libSheet, libRange);
+  var recordMatchRow = 0;
+  var subjectMatchRow = 0;
   
 //IF NEW APPEND TO SHEET AS NEW RECORD ROW
   if(isNew == true){
@@ -703,15 +733,37 @@ function save(e){
         var label = app.getElementById(saveLabels[i]);
         label.setText("");
     }
+    
+    if(status ==  "100%"){
+      
+        MailApp.sendEmail({
+          to: recordObjects[recordMatchRow].publisher,
+          subject: "Scope document awaiting publishing",
+          htmlBody:  "Hello, <br><br>" +           
+                    "The following document status is now 100% complete.<br><br>" +
+                    "<b>Document title: </b>" + title + "<br>" +
+                    "<b>Subject: </b>" + subjectText + "<br>" +
+                    "<b>Author: </b>" + recordObjects[recordMatchRow].author + "<br><br><br>" +
+                    "Access the system here: https://sites.google.com/a/nexus.edu.my/nexus-curriculum-planning/home",
+        });  
+      
+    };
+    
+    saveBtnOne.setEnabled(true);
+    saveBtnTwo.setEnabled(true);
+    saveBtnThree.setEnabled(true);
+    saveBtnFour.setEnabled(true);
+    saveBtnFive.setEnabled(true);
+    
     return app;
   }
   
 //IF NOT NEW CONTINUE AND CREATE ARRAY OF EXISTING RECORDS
-  var recordRange = libSheet.getLastRow()-1; 
-  var libRange = libSheet.getRange(2, 1, recordRange, 37);
-  var recordObjects = getRowsData(libSheet, libRange);
-  var recordMatchRow = 0;
-  var subjectMatchRow = 0;
+ // var recordRange = libSheet.getLastRow()-1; 
+  //var libRange = libSheet.getRange(2, 1, recordRange, 38);
+ // var recordObjects = getRowsData(libSheet, libRange);
+ // var recordMatchRow = 0;
+ // var subjectMatchRow = 0;
  
 //NEW UPDATE BLOCK
   for(var i = 0; i < recordObjects.length; i++){    
@@ -722,7 +774,7 @@ function save(e){
   }
 
   if(isUpdate == true){
-    libSheet.getRange(recordMatchRow, 1, 1, 37).setValues(values2);
+    libSheet.getRange(recordMatchRow, 1, 1, 38).setValues(values2);
     
     var lastRow = subjectSheet.getLastRow();
     var subjectRecords = subjectSheet.getRange(1, 1, lastRow, 1).getValues();
@@ -730,7 +782,7 @@ function save(e){
     for(var i = 0; i < subjectRecords.length; i++){
       if(subjectRecords[i][0] == docId){
         subjectMatchRow = i+1;
-        subjectSheet.getRange(subjectMatchRow, 1, 1, 49).setValues(valuesFull2);
+        subjectSheet.getRange(subjectMatchRow, 1, 1, 50).setValues(valuesFull2);
       }  
     }
     
@@ -738,17 +790,41 @@ function save(e){
       var label = app.getElementById(saveLabels[i]);
       label.setText("");
     }
-    return app;
+      
+      if(status ==  "100%"){
+        recordObjects = getRowsData(libSheet, libRange);
+        recordMatchRow = recordMatchRow - 2;
+        MailApp.sendEmail({
+          to: recordObjects[recordMatchRow].publisher,
+          subject: "Scope document awaiting publishing",
+          htmlBody: "Hello, <br><br>" +           
+                    "The following document status is now 100% complete.<br><br>" +
+                    "<b>Document title: </b>" + title + "<br>" +
+                    "<b>Subject: </b>" + subjectText + "<br>" +
+                    "<b>Author: </b>" + recordObjects[recordMatchRow].author + "<br><br><br>" +
+                    "Access the system here: https://sites.google.com/a/nexus.edu.my/nexus-curriculum-planning/home",
+        });  
+      
+      };
+      
+      saveBtnOne.setEnabled(true);
+      saveBtnTwo.setEnabled(true);
+      saveBtnThree.setEnabled(true);
+      saveBtnFour.setEnabled(true);
+      saveBtnFive.setEnabled(true);
+      
+      return app;
   }
 
 //IF NOT NEW AND NOT UPDATE CREATE NEW ID, COPY ALL OTHER DETAILS AND APPEND VALUES TO SPREADSHEET AS NEW RECORD
   docId = new Date().getTime().toString();
-//SET VALUE ARRAYS AND OBJECTS AGAIN - YES, RIDICULOUS, apparently it calls docId value set earlier in the script, not the one reset above
-  values = [docId, dateCreatedText, title, subjectText, subjectIndex, department, author, publisher, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
-                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20];
-  valuesFull = [docId, dateCreatedText, title, subjectText, subjectIndex, department, author, publisher, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
+//SET VALUE ARRAYS AND OBJECTS AGAIN - YES, RIDICULOUS, apparently it would call docId value set earlier in the script, not the one reset above if i do not declare again
+  values = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
+                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl];
+  valuesFull = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
                     chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20,
-                    unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText];
+                    unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText, length, docUrl];
+                    
   libSheet.appendRow(values);
   subjectSheet.appendRow(valuesFull);
   
@@ -757,17 +833,44 @@ function save(e){
   for(var i = 0; i < saveLabels.length; i++){   
     var label = app.getElementById(saveLabels[i]);
     label.setText("");
-  }  
+  }
+  
+  Logger.log(status);
+  if(status ==  "100%"){
+    
+    MailApp.sendEmail({
+      to: recordObjects[recordMatchRow].publisher,
+      subject: "Scope document awaiting publishing",
+      htmlBody:  "Hello, <br><br>" +           
+                    "The following document status is now 100% complete.<br><br>" +
+                    "<b>Document title: </b>" + title + "<br>" +
+                    "<b>Subject: </b>" + subjectText + "<br>" +
+                    "<b>Author: </b>" + recordObjects[recordMatchRow].author + "<br><br><br>" +
+                    "Access the system here: https://sites.google.com/a/nexus.edu.my/nexus-curriculum-planning/home",
+    });  
+  };  
+  
+  saveBtnOne.setEnabled(true);
+  saveBtnTwo.setEnabled(true);
+  saveBtnThree.setEnabled(true);
+  saveBtnFour.setEnabled(true);
+  saveBtnFive.setEnabled(true);
+  
   return app;
+  
 }
 
-///{{{{{{{{{{{{{{{{{{{{{{{{{ SEARCH }}}}}}}}}}}}}}}}}}}}}}}}}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+///{{{{{{{{{{{{{{{{{{{{{{{{{ SEARCH DISPLAY }}}}}}}}}}}}}}}}}}}}}}}}}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
 
 function searchDisplay(){
   Logger.log("running search display function");
   var app = UiApp.getActiveApplication();
   var panel = app.getElementById("panel");
   panel.clear();
+  
+  var ss = SpreadsheetApp.openById("0AvxDSSvcJgoIdDM1ZGhhQVZVcG52M0k3clNNWnJJUXc");
+  var libSheet = ss.getSheetByName("Library");
+  libSheet.getRange("AM1").setValue(0);
   
 //COLORS
   var plain = "#FFFFFF";
@@ -784,14 +887,29 @@ function searchDisplay(){
   var largeBtnStyle = {width: "100px", height: "40px", fontSize: "14px", background: saveButton, color: dark};
   var borderStyle = "1px solid #E0E0E0";
   
+//HANDLERS
+  var searchRecordsHandler = app.createServerHandler("searchRecords").addCallbackElement(panel);
+  
+  
   var searchLabel = app.createLabel("Search the library").setStyleAttribute("fontSize", "20px").setStyleAttributes(headerStyle);
   var searchTitle = app.createGrid(1,2).setWidth("900px")
                        .setCellPadding(10)
                        .setStyleAttributes({background: titleColor, width: "900px"})
-                       .setWidget(0, 0, searchLabel)
-                       .setWidget(0, 1, app.createButton("<B>search</B>").setStyleAttributes(largeBtnStyle))
-                       .setStyleAttribute(0, 1, "text-align", "right");
-                        
+                       .setWidget(0, 0, searchLabel);
+                       //.setWidget(0, 1, app.createButton("<B>search</B>").setStyleAttributes(largeBtnStyle).addClickHandler(searchRecordsHandler))
+                       //.setStyleAttribute(0, 1, "text-align", "right");
+  
+  var returnAllCheck = app.createCheckBox("Show all").setName("returnAllCheck");
+  
+  var returnAllGrid = app.createGrid(1, 2)
+                            .setBorderWidth(0)
+                            .setCellSpacing(0)
+                            .setCellPadding(10) 
+                            .setStyleAttributes({background: light})
+                            .setStyleAttribute(0, 0, "width", "165px")
+                            .setText(0, 0, "Checking this option will return a list of ALL scope documents at 'Published' status")
+                            .setWidget(0, 1, returnAllCheck);
+  
   var titleText = app.createTextBox().setWidth("700px").setHeight("30px").setName("titleText").setStyleAttribute("fontSize", "20px")
                      .setTitle("A brief title describing this scope.");
   
@@ -829,23 +947,66 @@ function searchDisplay(){
   var conceptText = app.createListBox().setWidth("300px").setHeight("30px").setName("conceptText").setTitle("The conceptual lens helps the learners develop \
 the cognitive process of seeing patterns and connections to link different elements.");
   for(var n = 0; n < conceptualArray.length; n++){conceptText.addItem(conceptualArray[n])};
-
+  
+  var searchDividerOne = app.createGrid(1,1)
+                         .setBorderWidth(0)
+                         .setCellSpacing(0)
+                         .setCellPadding(10)
+                         .setStyleAttributes(0, 0, {width: "900px", height: "5px"})
+                         .setStyleAttributes({background: saveBar});
+  
+  var keyMatchAll = app.createCheckBox("Match all").setValue(true).setName("keyMatchAll");
+  
   var keyText = app.createTextArea().setWidth("700px").setVisibleLines(1).setStyleAttribute("maxWidth", "700px").setName("keyText")
                    .setTitle("A concept is a big idea represented by one or two words. It is timeless, universal and abstract \
 e.g. patterns.");
-                       
-  var searchGrid = app.createGrid(6, 2)
+  
+  var keyMatchGrid = app.createGrid(1, 2)
+                            .setBorderWidth(0)
+                            .setCellSpacing(0)
+                            .setCellPadding(10) 
+                            .setStyleAttributes({background: light})
+                            .setStyleAttribute(0, 0, "width", "165px")
+                            .setText(0, 0, "This option allows you to specify whether your search should match all OR any of the key concepts")
+                            .setWidget(0, 1, keyMatchAll);  
+  
+  var searchDividerTwo = app.createGrid(1,1)
+                         .setBorderWidth(0)
+                         .setCellSpacing(0)
+                         .setCellPadding(10)
+                         .setStyleAttributes(0, 0, {width: "900px", height: "5px"})
+                         .setStyleAttributes({background: saveBar});
+  
+  var checkMatchAll = app.createCheckBox("Match all").setValue(true).setName("checkMatchAll");
+  
+  var checkMatchGrid = app.createGrid(1, 2)
+                            .setBorderWidth(0)
+                            .setCellSpacing(0)
+                            .setCellPadding(10) 
+                            .setStyleAttributes({background: light})
+                            .setStyleAttribute(0, 0, "width", "165px")
+                            .setText(0, 0, "This option allows you to specify whether your search should match all OR any of the PATS selected")
+                            .setWidget(0, 1, checkMatchAll);
+                            
+  var searchGrid = app.createGrid(5, 2)
                          .setBorderWidth(0)
                          .setCellSpacing(0)
                          .setCellPadding(10) 
-                         .setStyleAttributes({background: light})
+                         .setStyleAttributes({marginTop: '0px', background: light})
                          .setStyleAttribute(0, 0, "width", "200px")
                          .setText(0, 0, "Unit title").setWidget(0, 1, titleText)  
                          .setText(1, 0, "Subject").setWidget(1, 1, subjectList)           
                          .setText(2, 0, "Age range").setWidget(2, 1, ageRangeText)           
                          .setText(3, 0, "Term").setWidget(3, 1, termText)
                          .setText(4, 0, "Conceptual lens").setWidget(4, 1, conceptText)
-                         .setText(5, 0, "Key concepts").setWidget(5, 1, keyText);                        
+                         
+  var keySearchGrid = app.createGrid(1, 2)
+                         .setBorderWidth(0)
+                         .setCellSpacing(0)
+                         .setCellPadding(10) 
+                         .setStyleAttributes({marginTop: '0px', background: light})
+                         .setStyleAttribute(0, 0, "width", "200px")
+                         .setText(0, 0, "Key concepts").setWidget(0, 1, keyText);                        
                         
 //CREATE CHECKBOXES
   var chk_01 = app.createCheckBox().setName("chk_01");
@@ -883,24 +1044,24 @@ e.g. patterns.");
                      .setWidget(0, 5, persLabel)
                      .setWidget(4, 1, thinkLabel)
                      .setWidget(1, 0, chk_01).setText(1, 1, "Information and media literacy")
-                     .setWidget(1, 2, chk_02).setText(1, 3, "Take initiative")
+                     .setWidget(1, 2, chk_02).setText(1, 3, "Taking initiative")
                      .setWidget(1, 4, chk_03).setText(1, 5, "Knowledgeable")
                      .setWidget(5, 0, chk_04).setText(5, 1, "Critical (analysis and evaluation)")
-                     .setWidget(2, 0, chk_05).setText(2, 1, "Digital applications in making moving image")
-                     .setWidget(2, 2, chk_06).setText(2, 3, "Enquire")
+                     .setWidget(2, 0, chk_05).setText(2, 1, "Digital application")
+                     .setWidget(2, 2, chk_06).setText(2, 3, "Enquiring")
                      .setWidget(2, 4, chk_07).setText(2, 5, "Principled")
                      .setWidget(6, 0, chk_08).setText(6, 1, "Metacognition")
-                     .setWidget(3, 0, chk_09).setText(3, 1, "Research skills")
-                     .setWidget(3, 2, chk_10).setText(3, 3, "Plan narratives & moving image production")
-                     .setWidget(3, 4, chk_11).setText(3, 5, "Open minded / Internationally minded")
+                     .setWidget(3, 0, chk_09).setText(3, 1, "Research")
+                     .setWidget(3, 2, chk_10).setText(3, 3, "Planning")
+                     .setWidget(3, 4, chk_11).setText(3, 5, "Open minded")
                      .setWidget(7, 0, chk_12).setText(7, 1, "Problem solving")
-                     .setWidget(4, 2, chk_13).setText(4, 3, "Collaborate")
+                     .setWidget(4, 2, chk_13).setText(4, 3, "Collaborating")
                      .setWidget(4, 4, chk_14).setText(4, 5, "Caring")
                      .setWidget(5, 2, chk_15).setText(5, 3, "Synthesise (design / create / make)")
                      .setWidget(5, 4, chk_16).setText(5, 5, "Courageous")
-                     .setWidget(6, 2, chk_17).setText(6, 3, "Communicate")
+                     .setWidget(6, 2, chk_17).setText(6, 3, "Communicating")
                      .setWidget(6, 4, chk_18).setText(6, 5, "Balanced")
-                     .setWidget(7, 2, chk_19).setText(7, 3, "Reflect / review")
+                     .setWidget(7, 2, chk_19).setText(7, 3, "Reflecting / reviewing")
                      .setWidget(7, 4, chk_20).setText(7, 5, "Resilient / resourceful");  
   
 //GOALS GRIDBOTTOM
@@ -929,20 +1090,364 @@ e.g. patterns.");
            .setColumnStyleAttributes(4, {borderLeft: borderStyle})
            .setColumnStyleAttributes(5, {borderRight: borderStyle});
            
+  var searchBtn = app.createButton("<B>search</B>").setId("search")
+                     .setStyleAttributes(largeBtnStyle)
+                     .addClickHandler(searchRecordsHandler);
+                  
+  
+  var disableHandler = app.createClientHandler().forTargets(searchBtn).setEnabled(false);
+ 
+  
+  var searchProgressLabel = app.createLabel("").setId("searchProgress").setStyleAttribute("color", plain);
+  var searchDialogHandler = app.createClientHandler().forTargets(searchProgressLabel).setText("Search in progress...");
+  searchBtn.addClickHandler(disableHandler).addClickHandler(searchDialogHandler);
   
   var searchEndTitle = app.createGrid(1,2).setWidth("900px")
                           .setCellPadding(10)
                           .setStyleAttributes({background: titleColor, width: "900px"})
-                          .setWidget(0, 1, app.createButton("<B>search</B>").setStyleAttributes(largeBtnStyle))
+                          .setWidget(0, 0, searchProgressLabel)
+                          .setWidget(0, 1, searchBtn)
+                          .setStyleAttribute(0, 0, "width", "760px")
+                          .setStyleAttribute(0, 0, "text-align", "right")
                           .setStyleAttribute(0, 1, "text-align", "right");
-  
+                          
+                          
+  var recordFlex = app.createFlexTable().setId("recordFlex")
+                      .setStyleAttributes({marginTop: "10px", marginLeft: "10px", width: "880px", borderCollapse: "collapse", border: "1px solid #606060"})
+                      .setCellPadding(5)
+                      .setBorderWidth(1);
+                
   panel.add(searchTitle);
-  panel.add(searchGrid);     
+  panel.add(returnAllGrid);
+  panel.add(searchGrid);
+  panel.add(searchDividerOne);
+  panel.add(keyMatchGrid);
+  panel.add(keySearchGrid);
+  panel.add(searchDividerTwo);
+  panel.add(checkMatchGrid);
   panel.add(goalsGridBottom);
   panel.add(searchEndTitle);
+  panel.add(recordFlex);
+  
   return app
 
 }
+
+//{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{ SEARCH RECORDS }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+function searchRecords(e){
+
+  Logger.log("Search records function running");
+  var startTime = new Date();
+  var app = UiApp.getActiveApplication();
+  var panel = app.getElementById("panel");
+  var recordFlex = app.getElementById("recordFlex");
+  var searchBtn = app.getElementById("search");
+  var searchProgressLabel = app.getElementById("searchProgress");
+  var ss = SpreadsheetApp.openById("0AvxDSSvcJgoIdDM1ZGhhQVZVcG52M0k3clNNWnJJUXc");
+  var libSheet = ss.getSheetByName("Library");
+  var libRange = libSheet.getRange(2, 1, libSheet.getLastRow()-1, 38);
+  var libraryObjects = getRowsData(libSheet, libRange);
+  var tableRowCount = libSheet.getRange("AM1").getValue();
+  var user = Session.getActiveUser().getEmail();
+  var editHandler = app.createServerHandler("editRecord");
+
+  //COLORS
+  var plain = "#FFFFFF";
+  var light = "#F4F4F4";
+  var mid = "#E0E0E0";
+  var dark = "#606060";
+  var titleColor = "#00b6de";
+  var saveBar = "#61c1f1";
+  var saveButton = "#c1d82f";  
+  
+  //STYLES
+  var headerStyle = {color: dark, fontSize: "20px", width: "100%", height: "50px", lineHeight: "50px"};
+  var smallBtnStyle = {width: "40px", height: "20px", fontSize: "10px", background: saveButton, color: dark};
+  var largeBtnStyle = {width: "100px", height: "40px", fontSize: "14px", background: saveButton, color: dark};
+  
+  var returnAllText = e.parameter.returnAllCheck;
+  
+  //RETURN ALL
+  if(returnAllText == "true"){ 
+    recordFlex.clear();
+    recordFlex.setWidget(0, 0, app.createLabel("Document ID")).setStyleAttribute(0, 0, "text-align", "center")
+              .setWidget(0, 1, app.createLabel("Title")).setStyleAttribute(0, 1, "text-align", "center")
+              .setWidget(0, 2, app.createLabel("Subject")).setStyleAttribute(0, 2, "text-align", "center")
+              .setWidget(0, 3, app.createLabel("Date created")).setStyleAttribute(0, 3, "text-align", "center")
+              .setWidget(0, 4, app.createLabel("Author")).setStyleAttribute(0, 4, "text-align", "center")
+              .setWidget(0, 5, app.createLabel("Status")).setStyleAttribute(0, 5, "text-align", "center")
+              .setRowStyleAttribute(0, "height", "40px")
+              .setWidget(0, 6, app.createLabel(""));
+     
+    var editText = "";
+    var openText = "";
+  
+      for(var i = 0; i < libraryObjects.length; i++){
+    
+        recordFlex.setWidget(i+1, 0, app.createLabel(libraryObjects[i].documentId)).setStyleAttribute(i+1, 0, "text-align", "center")
+                  .setWidget(i+1, 1, app.createLabel(libraryObjects[i].title)).setStyleAttribute(i+1, 1, "text-align", "center")
+                  .setWidget(i+1, 2, app.createLabel(libraryObjects[i].subject)).setStyleAttribute(i+1, 2, "text-align", "center")
+                  .setWidget(i+1, 3, app.createLabel(shortDate(libraryObjects[i].dateCreated))).setStyleAttribute(i+1, 3, "text-align", "center")
+                  .setWidget(i+1, 4, app.createLabel(libraryObjects[i].author)).setStyleAttribute(i+1, 4, "text-align", "center")
+                  .setWidget(i+1, 5, app.createLabel(libraryObjects[i].status.toString())).setStyleAttribute(i+1, 5, "text-align", "center")
+                  .setRowStyleAttribute(i+1, "height", "40px");
+        
+        var statusText = libraryObjects[i].status;
+        
+        if(statusText == "Published"){
+          var openPanel = app.createVerticalPanel();
+          var openBtn = app.createButton("open").setStyleAttributes(smallBtnStyle)
+          var docLink = app.createAnchor("open", libraryObjects[i].docurl)
+                           .setStyleAttributes({'zIndex':'10', 'position':'absolute', 'marginLeft':'10px', 'marginTop':'-22px', 'color':'transparent'});
+          openPanel.add(openBtn).add(docLink);
+          recordFlex.setWidget(i+1, 6, openPanel).setStyleAttribute(i+1, 6, "text-align", "center");        
+        }else{
+          recordFlex.setWidget(i+1, 6, app.createLabel(""));
+        }        
+    }    
+  
+    recordFlex.setColumnStyleAttribute(0, "width", "100px")
+        .setColumnStyleAttribute(1, "width", "200px")
+        .setColumnStyleAttribute(2, "width", "100px")
+        .setColumnStyleAttribute(3, "width", "100px")
+        .setColumnStyleAttribute(4, "width", "200px")
+        .setColumnStyleAttribute(5, "width", "100px")
+        .setColumnStyleAttribute(6, "width", "45px")
+        .setRowStyleAttribute(0, "background", mid)
+        .setStyleAttributes({background: plain});  
+  
+  libSheet.getRange("AM1").setValue(libraryObjects.length);
+  var endTime = new Date();
+  var totalTime = (endTime - startTime)/1000;
+  var docsMatchedStr = libraryObjects.length + " documents matched (" + totalTime + " secs)";
+  app.getElementById("searchProgress").setText(docsMatchedStr);
+  searchBtn.setEnabled(true)
+  return app;
+  
+  }
+  
+  //BEGIN SEARCH  
+  
+  //manipulate title text
+  var titleText = e.parameter.titleText;
+  var titleTextReplaced = titleText.replace(/[^a-zA-Z ]+/ig, '');  
+  var titleTextClean = titleTextReplaced.toLowerCase();
+  
+  //dropdown values  
+  var subjectText = e.parameter.subjectText;
+  var ageRangeText = e.parameter.yearText;
+  var termText = e.parameter.termText;
+  var conceptText = e.parameter.conceptText;
+  
+  //key concepts
+  var keyMatchAll = e.parameter.keyMatchAll
+  var keyText = e.parameter.keyText;
+  var keyTextLower = keyText.toLowerCase();
+  var keyTextArray = keyTextLower.split(", ");
+  
+  //PATS checkboxes
+  var checkMatchAll = e.parameter.checkMatchAll;
+    
+  //section flags and arrays
+  var sectionOne = false;
+  var sectionTwo = false;
+  var sectionTwoReq = 0;
+  var sectionTwoCount = 0;
+  var sectionThree = false;
+  var keyCount = 0;
+  var sectionFour = false;
+  var patsSearchReq = 0;
+  var checkCount = 0;
+  var checkError = 0;
+  var matchedIdArray = [];
+  
+  if(subjectText != ""){sectionTwoReq++;}
+  if(ageRangeText != ""){sectionTwoReq++;}
+  if(termText != ""){sectionTwoReq++;}
+  if(conceptText != ""){sectionTwoReq++;}
+  
+  for(var i = 0; i < libraryObjects.length; i++){
+    
+    //title
+    if(titleTextClean == "" || libraryObjects[i].title.toLowerCase().indexOf(titleTextClean) != -1){sectionOne = true;}
+    
+    //drop downs
+    if(sectionTwoReq == 0){
+      sectionTwo = true;
+    }else{
+      if(subjectText == libraryObjects[i].subject){sectionTwoCount = sectionTwoCount + 1;}
+      if(ageRangeText == libraryObjects[i].group){sectionTwoCount = sectionTwoCount + 1;}
+      if(termText == libraryObjects[i].term){sectionTwoCount = sectionTwoCount + 1;}
+      if(conceptText == libraryObjects[i].conceptualLens){sectionTwoCount = sectionTwoCount + 1;}
+    }
+    
+    if(sectionTwoCount == sectionTwoReq){sectionTwo = true;}
+    sectionTwoCount = 0;
+    
+    //key concepts    
+    if(keyText == ""){
+      sectionThree = true;
+    }else{
+      //'match all' selected
+      if(keyMatchAll == "true"){ 
+        var libObjectsKey = libraryObjects[i].keyConcepts;
+        var libObjectsKeyLower = libObjectsKey.toLowerCase()
+        var libObjectsKeyArray = libObjectsKeyLower.split(", ");      
+        for(var k = 0; k < keyTextArray.length; k++){        
+          for(var j = 0; j < libObjectsKeyArray.length; j++){
+            if(keyTextArray[k] == libObjectsKeyArray[j]){
+              keyCount++
+            }
+          }
+        }    
+        if(keyCount == keyTextArray.length){sectionThree = true;}
+      } 
+  
+      //'match all' unselected
+      if(keyMatchAll == "false"){    
+        var libObjectsKey = libraryObjects[i].keyConcepts;
+        var libObjectsKeyLower = libObjectsKey.toLowerCase()
+        var libObjectsKeyArray = libObjectsKeyLower.split(", ");
+        for(var k = 0; k < keyTextArray.length; k++){        
+          for(var j = 0; j < libObjectsKeyArray.length; j++){
+            if(keyTextArray[k] == libObjectsKeyArray[j]){
+              keyCount++          
+            }
+          }
+        }
+        if(keyCount > 0){sectionThree = true;}
+        keyCount = 0;
+      }
+    }    
+    
+    //PATS checkboxes    
+    for(var n = 0; n < 20; n++){
+      var str = "chk_" + pad(n + 1);
+      if(e.parameter[str] == "true"){
+        patsSearchReq = 1;
+        break;
+      }
+    }
+    
+    if(patsSearchReq != 1){
+      sectionFour = true;
+    }else{
+      if(checkMatchAll == "true"){
+        for(var m = 0; m < 20; m++){
+          var str = "chk_" + pad(m + 1);
+          if(e.parameter[str] == libraryObjects[i][patsKeyArray[m]].toString()){
+            checkCount = checkCount + 1;
+          }else{
+            checkError = checkError + 1;
+            break;
+          }       
+        }
+         if(checkError == 0){sectionFour = true}
+         checkCount = 0;
+         checkError = 0;
+      }
+    
+      if(checkMatchAll == "false"){
+        for(var m = 0; m < 20; m++){
+          var str = "chk_" + pad(m + 1);
+          if(e.parameter[str] == libraryObjects[i][patsKeyArray[m]].toString()){
+            checkCount = checkCount + 1;
+            break;
+          }else{
+            checkError = checkError + 1;
+          }       
+        }
+         if(checkCount > 0){sectionFour = true}
+         checkCount = 0;
+         checkError = 0;
+      }    
+    }
+  
+
+    //Logger.log("section one is: " + sectionOne);
+    //Logger.log("section two is: " + sectionTwo);
+    //Logger.log("section three is: " + sectionThree);
+    //Logger.log("section four is: " + sectionFour);
+    
+    if(sectionOne == true && sectionTwo == true && sectionThree == true && sectionFour == true){matchedIdArray.push(libraryObjects[i].documentId);}
+    
+    sectionOne = false;
+    sectionTwo = false;    
+    sectionThree = false;
+    sectionFour = false;
+    
+  }
+  
+  recordFlex.clear();
+  if(tableRowCount > 0 || tableRowCount < matchedIdArray.length){
+    var y = tableRowCount;
+    var z = 0;  
+    while(z < (tableRowCount - matchedIdArray.length)){
+      recordFlex.removeRow(y);
+      y--;
+      z++;  
+    }
+  }
+  
+  recordFlex.setWidget(0, 0, app.createLabel("Document ID")).setStyleAttribute(0, 0, "text-align", "center")
+            .setWidget(0, 1, app.createLabel("Title")).setStyleAttribute(0, 1, "text-align", "center")
+            .setWidget(0, 2, app.createLabel("Subject")).setStyleAttribute(0, 2, "text-align", "center")
+            .setWidget(0, 3, app.createLabel("Date created")).setStyleAttribute(0, 3, "text-align", "center")
+            .setWidget(0, 4, app.createLabel("Author")).setStyleAttribute(0, 4, "text-align", "center")
+            .setWidget(0, 5, app.createLabel("Status")).setStyleAttribute(0, 5, "text-align", "center")
+            .setRowStyleAttribute(0, "height", "40px")
+            .setWidget(0, 6, app.createLabel(""));
+            
+  for(var r = 0; r < matchedIdArray.length; r++){
+    for(var s = 0; s < libraryObjects.length; s++){
+      if(matchedIdArray[r] == libraryObjects[s].documentId){        
+     
+        var editText = "";
+        var openText = "";
+  
+        recordFlex.setWidget(r + 1, 0, app.createLabel(libraryObjects[s].documentId)).setStyleAttribute(r + 1, 0, "text-align", "center")
+                  .setWidget(r + 1, 1, app.createLabel(libraryObjects[s].title)).setStyleAttribute(r + 1, 1, "text-align", "center")
+                  .setWidget(r + 1, 2, app.createLabel(libraryObjects[s].subject)).setStyleAttribute(r + 1, 2, "text-align", "center")
+                  .setWidget(r + 1, 3, app.createLabel(shortDate(libraryObjects[s].dateCreated))).setStyleAttribute(r + 1, 3, "text-align", "center")
+                  .setWidget(r + 1, 4, app.createLabel(libraryObjects[s].author)).setStyleAttribute(r + 1, 4, "text-align", "center")
+                  .setWidget(r + 1, 5, app.createLabel(libraryObjects[s].status.toString())).setStyleAttribute(r + 1, 5, "text-align", "center")
+                  .setRowStyleAttribute(r+1, "height", "40px");
+        
+        var statusText = libraryObjects[s].status;
+        
+        if(statusText == "Published"){
+          var openPanel = app.createVerticalPanel();
+          var openBtn = app.createButton("open").setStyleAttributes(smallBtnStyle)
+          var docLink = app.createAnchor("open", libraryObjects[s].docurl)
+                           .setStyleAttributes({'zIndex':'10', 'position':'absolute', 'marginLeft':'10px', 'marginTop':'-22px', 'color':'transparent'});
+          openPanel.add(openBtn).add(docLink);
+          recordFlex.setWidget(r + 1, 6, openPanel).setStyleAttribute(r + 1, 6, "text-align", "center");        
+        }else{
+          recordFlex.setWidget(r + 1, 6, app.createLabel(""));
+        }        
+      }  
+    }
+  }
+  
+  recordFlex//.setColumnStyleAttribute(0, "width", "100px")
+            //.setColumnStyleAttribute(1, "width", "200px")
+            //.setColumnStyleAttribute(2, "width", "100px")
+           // .setColumnStyleAttribute(3, "width", "100px")
+           // .setColumnStyleAttribute(4, "width", "200px")
+           // .setColumnStyleAttribute(5, "width", "100px")
+            .setColumnStyleAttribute(6, "width", "45px")
+            .setRowStyleAttribute(0, "background", mid)
+            .setStyleAttributes({background: plain});
+
+  libSheet.getRange("AM1").setValue(matchedIdArray.length);
+  var endTime = new Date();
+  var totalTime = (endTime - startTime)/1000;
+  var docsMatchedStr = matchedIdArray.length + " documents matched (" + totalTime + " secs)";
+  app.getElementById("searchProgress").setText(docsMatchedStr);
+  searchBtn.setEnabled(true);  
+  return app;
+}
+
 
 ///{{{{{{{{{{{{{{{{{{{{{{{{{ EDIT RECORD }}}}}}}}}}}}}}}}}}}}}}}}}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
 function editRecord(e) { 
@@ -952,7 +1457,6 @@ function editRecord(e) {
   var source = e.parameter.source;
   var recordId = source.substr(8);
   var taskId = source.substr(0, 3);
-  //Logger.log(taskId);
   var isPublisher = false;
   
   var subjectSheetName = "";
@@ -962,7 +1466,19 @@ function editRecord(e) {
   //SHEET
   var ss = SpreadsheetApp.openById("0AvxDSSvcJgoIdDM1ZGhhQVZVcG52M0k3clNNWnJJUXc");
   var libSheet = ss.getSheetByName("Library");
+  var pubSheet = ss.getSheetByName("Data");
   var libRange = libSheet.getRange(2, 1, libSheet.getLastRow() - 1, 4);
+  var user = Session.getActiveUser().getEmail();
+  var pubRange = pubSheet.getRange("Publishers")
+  var pubObjects = getRowsData(pubSheet, pubRange);
+  
+  //DETERMINE IF USER IS PUBLISHER
+  for(var i = 0; i < pubObjects.length; i++){  
+    if(pubObjects[i].publisher == user){    
+      isPublisher = true;
+      break;
+    }  
+  }  
   
   //GET DOCUMENT AT LIBRARY LEVEL
   var recordObjects = getRowsData(libSheet, libRange);
@@ -986,7 +1502,7 @@ function editRecord(e) {
 
   var recordRow = "";
   
-  //function to get size of array by counting keys with corresponding values only   
+ /* //function to get size of array by counting keys with corresponding values only   
   Object.size = function(obj) {
     var size = 0, key;
     for (key in obj) {
@@ -996,7 +1512,7 @@ function editRecord(e) {
   };
 
   // Get the size of an object
-  var size = Object.size(subjectRecordObjects[0]);  
+  var size = Object.size(subjectRecordObjects[0]); */
   
   for(var i = 0; i < subjectRecordObjects.length; i++){
     if(subjectRecordObjects[i].documentId == recordId){    
@@ -1005,9 +1521,7 @@ function editRecord(e) {
       break;   
     }  
   }
-  
-  Logger.log(subjectRecordObjects[0]);
-  
+    
   if(missingSubjectRecord == true){  
     Logger.log("subject record " + recordId + " missing");  
   }
@@ -1131,18 +1645,24 @@ Success criteria should be observable and measurable.");
 of the content, skills, essential ideas and key concepts that the unit has covered?");
   
 //SAVE BUTTONS
-  var saveBtnOne = app.createButton("<B>save</B>");
-  var saveBtnTwo = app.createButton("<B>save</B>");
-  var saveBtnThree = app.createButton("<B>save</B>");
-  var saveBtnFour = app.createButton("<B>save</B>");
-  var saveBtnFive = app.createButton("<B>save</B>");
+  var saveBtnOne = app.createButton("<B>save</B>").setId("saveBtnOne");
+  var saveBtnTwo = app.createButton("<B>save</B>").setId("saveBtnTwo");
+  var saveBtnThree = app.createButton("<B>save</B>").setId("saveBtnThree");
+  var saveBtnFour = app.createButton("<B>save</B>").setId("saveBtnFour");
+  var saveBtnFive = app.createButton("<B>save</B>").setId("saveBtnFive");
 
 //SAVE LABELS
   var saveLabel1 = app.createLabel("").setId("saveLabel1");
   var saveLabel2 = app.createLabel("").setId("saveLabel2");
   var saveLabel3 = app.createLabel("").setId("saveLabel3");
   var saveLabel4 = app.createLabel("").setId("saveLabel4");
-  var saveLabel5 = app.createLabel("").setId("saveLabel5");  
+  var saveLabel5 = app.createLabel("").setId("saveLabel5");
+
+//PUBLISHING BUTTON
+  var publishBtn = app.createButton("<B>publish</B>").setId(docId);
+
+//PUBLISHING LABEL
+  var publishLabel = app.createLabel("").setId("publishLabel");
   
 //COLOURS
   var plain = "#FFFFFF";
@@ -1284,25 +1804,25 @@ of the content, skills, essential ideas and key concepts that the unit has cover
                      .setWidget(0, 5, persLabel)
                      .setWidget(4, 1, thinkLabel)
                      .setWidget(1, 0, chk_01).setText(1, 1, "Information and media literacy")
-                     .setWidget(1, 2, chk_02).setText(1, 3, "Take initiative")
+                     .setWidget(1, 2, chk_02).setText(1, 3, "Taking initiative")
                      .setWidget(1, 4, chk_03).setText(1, 5, "Knowledgeable")
                      .setWidget(5, 0, chk_04).setText(5, 1, "Critical (analysis and evaluation)")
-                     .setWidget(2, 0, chk_05).setText(2, 1, "Digital applications in making moving image")
-                     .setWidget(2, 2, chk_06).setText(2, 3, "Enquire")
+                     .setWidget(2, 0, chk_05).setText(2, 1, "Digital application")
+                     .setWidget(2, 2, chk_06).setText(2, 3, "Enquiring")
                      .setWidget(2, 4, chk_07).setText(2, 5, "Principled")
                      .setWidget(6, 0, chk_08).setText(6, 1, "Metacognition")
-                     .setWidget(3, 0, chk_09).setText(3, 1, "Research skills")
-                     .setWidget(3, 2, chk_10).setText(3, 3, "Plan narratives & moving image production")
-                     .setWidget(3, 4, chk_11).setText(3, 5, "Open minded / Internationally minded")
+                     .setWidget(3, 0, chk_09).setText(3, 1, "Research")
+                     .setWidget(3, 2, chk_10).setText(3, 3, "Planning")
+                     .setWidget(3, 4, chk_11).setText(3, 5, "Open minded")
                      .setWidget(7, 0, chk_12).setText(7, 1, "Problem solving")
-                     .setWidget(4, 2, chk_13).setText(4, 3, "Collaborate")
+                     .setWidget(4, 2, chk_13).setText(4, 3, "Collaborating")
                      .setWidget(4, 4, chk_14).setText(4, 5, "Caring")
                      .setWidget(5, 2, chk_15).setText(5, 3, "Synthesise (design / create / make)")
                      .setWidget(5, 4, chk_16).setText(5, 5, "Courageous")
-                     .setWidget(6, 2, chk_17).setText(6, 3, "Communicate")
+                     .setWidget(6, 2, chk_17).setText(6, 3, "Communicating")
                      .setWidget(6, 4, chk_18).setText(6, 5, "Balanced")
-                     .setWidget(7, 2, chk_19).setText(7, 3, "Reflect / review")
-                     .setWidget(7, 4, chk_20).setText(7, 5, "Resilient / resourceful");  
+                     .setWidget(7, 2, chk_19).setText(7, 3, "Reflecting / reviewing")
+                     .setWidget(7, 4, chk_20).setText(7, 5, "Resilient / resourceful"); 
   
 //GOALS GRIDBOTTOM
   var goalsGridBottom = app.createGrid(1, 2).setStyleAttributes({backgroundColor: light})
@@ -1409,20 +1929,56 @@ of the content, skills, essential ideas and key concepts that the unit has cover
                           .setWidget(0, 1, saveBtnFive.setStyleAttributes({background: saveButton, color: dark}).setSize("80px", "30px"))
                           .setStyleAttribute(0, 1, "text-align", "right")
                           .setRowStyleAttributes(0, {backgroundColor: saveBar, height: "40px"})
-                          .setStyleAttribute(0, 0, "width", "820px");         
-  
+                          .setStyleAttribute(0, 0, "width", "820px");
+//PUBLISHING                          
+//PUBLISHING TITLE
+  var publishTitle = app.createGrid(1, 1)
+                        .setBorderWidth(0)
+                        .setCellSpacing(0)
+                        .setCellPadding(10)
+                        .setStyleAttribute("marginTop", "30px")
+                        .setText(0, 0, "Publishing").setStyleAttribute(0, 0, "fontSize", "20px")
+                        .setStyleAttributes(headerStyle);
+//PUBLISHING GRID                           
+  var publishGrid = app.createGrid(2, 1)
+                       .setBorderWidth(0)
+                       .setCellSpacing(0)
+                       .setCellPadding(10)
+                       .setStyleAttributes({background: light})
+                       .setText(0, 0, "Publish this document?").setStyleAttribute(0, 0, "fontSize", "20px")
+                       .setText(1, 0, "Before publishing please fully review this document.")
+                       .setStyleAttribute(0, 0, "width", "900px");;
+ 
+ var publishSave = app.createGrid(1, 2).setId("publishSave")
+                          .setBorderWidth(0)
+                          .setCellSpacing(0)
+                          .setCellPadding(0)
+                          .setWidget(0, 0, publishLabel)
+                          .setStyleAttribute(0, 0, "text-align", "right")
+                          .setStyleAttribute(0, 0, "color", plain)
+                          .setWidget(0, 1, publishBtn.setStyleAttributes({background: saveButton, color: dark}).setSize("80px", "30px"))
+                          .setStyleAttribute(0, 1, "text-align", "right")
+                          .setRowStyleAttributes(0, {backgroundColor: saveBar, height: "40px"})
+                          .setStyleAttribute(0, 0, "width", "820px");
+
 //HANDLERS
   var saveHandler = app.createServerClickHandler('save');
   saveHandler.addCallbackElement(flow);
   
+  var publishHandler = app.createServerClickHandler('publish');
+  
   var saveLabelHandler = app.createClientHandler().forTargets(saveLabel1, saveLabel2, saveLabel3, saveLabel4, saveLabel5).setText("saving...");                            
+  var publishLabelHandler = app.createClientHandler().forTargets(publishLabel).setText("publishing...");
+  
+  var disableHandler = app.createClientHandler().forTargets(saveBtnOne, saveBtnTwo, saveBtnThree, saveBtnFour, saveBtnFive).setEnabled(false);
   
 //ADD HANDLERS
-  saveBtnOne.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnTwo.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnThree.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnFour.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
-  saveBtnFive.addClickHandler(saveHandler).addClickHandler(saveLabelHandler);
+  saveBtnOne.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnTwo.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnThree.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnFour.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  saveBtnFive.addClickHandler(saveHandler).addClickHandler(saveLabelHandler).addClickHandler(disableHandler);
+  publishBtn.addClickHandler(publishHandler).addClickHandler(publishLabelHandler);
   
 //PANEL STRUCTURE
   flow.add(basicInfoTitle)
@@ -1441,22 +1997,360 @@ of the content, skills, essential ideas and key concepts that the unit has cover
       .add(evaluationTitle)
       .add(evaluationGrid)
       .add(evaluationSave);
-      
+  
+  Logger.log(subjectRecordObjects[recordRow].status);
+  
+  if(isPublisher == true && (subjectRecordObjects[recordRow].status == 1 || subjectRecordObjects[recordRow].status == "Published")){  
+    flow.add(publishTitle)
+        .add(publishGrid)
+        .add(publishSave);  
+  }
+  
   app.add(flow);
   
   return app;
   
  }
 
-///{{{{{{{{{{{{{{{{{{{{{{{{{ OPEN }}}}}}}}}}}}}}}}}}}}}}}}}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-function openRecord(e){
-  Logger.log("running open function");
-  var source = e.parameter.source;
-  var recordId = source.subStr(5);
+///{{{{{{{{{{{{{{{{{{{{{{{{{ PUBLISHING }}}}}}}}}}}}}}}}}}}}}}}}}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+function publish(e){
   
+  Logger.log("running publish function");
+  
+  var recordId = e.parameter.source;
+  var app = UiApp.getActiveApplication();
+  var publishSave = app.getElementById("publishSave");
+  var publishLabel = app.getElementById("publishLabel");
+  
+  var headerArray = ["Title", "Subject", "Department", "Author", "Publisher", "Group", "Year",
+                      "Term", "Length", "Conceptual lens", "Key concepts", "Unit description", "Relevance to real life", "Curriculum learning goals",
+                      "Understanding", "Debatable guiding question/s", "Conceptual guiding question/s", "Factual guiding question/s", "Knowledge", "Skills",
+                      "Success criteria", "Assessment evidence"];
+   
+   var headerKeyArray = ["title", "subject", "department", "author", "publisher", "group", "year", "term", "length", "conceptualLens",
+                   "keyConcepts", "unitDescription", "relevanceToRealLife", "curriculumLearningGoals", "understanding", "debatableGuidingQuestion", 
+                   "conceptualGuidingQuestion", "factualGuidingQuestion", "knowledge", "skills", "successCriteria", "assessmentEvidence"];
+                   
+   var skillsKeyArray = ["takeInitiative", "enquire", "planNarrativesMovingImageProduction", "collaborate", "synthesiseDesignCreateMake", "communicate",
+                         "reflectReview", "knowledgeable", "openMindedInternationallyMinded", "caring", "courageous", "balanced", "resilientResourceful",
+                         "principled", "informationAndMediaLiteracy", "digitalApplicationsInMakingMovingImage", "researchSkills", "criticalAnalysisAndEvaluation",
+                         "metacognition", "problemSolving"];
+   
+   var skillsArray = ["Taking initiative", "Enquiring", "Planning", "Collaborating", "Synthesising (design / create / make)",
+                      "Communicating", "Reflecting / reviewing", "Knowledgeable", "Open minded", "Caring", "Courageous", "Balanced", "Resilient / resourceful",
+                      "Principled", "Information and media literacy", "Digital application", "Research", "Critical (analysis and evaluation)", "Metacognition",
+                      "Problem solving"];
+                      
+   //var logoFile = DriveApp.getFileById("0B_xDSSvcJgoIMEdNcjBWQmV5czQ").getBlob();
+
+   var ss = SpreadsheetApp.openById("0AvxDSSvcJgoIdDM1ZGhhQVZVcG52M0k3clNNWnJJUXc");
+   var libSheet = ss.getSheetByName("Library");
+   var libRange = libSheet.getRange(2, 1, libSheet.getLastRow() - 1, 4)
+   var libObjects = getRowsData(libSheet, libRange);
+   var subjectName = "";
+   var libRecordRow = 0;
+   //Logger.log(libObjects);
+  // Logger.log(recordId);
+  // Logger.log(libObjects[0].documentId);
+  // Logger.log(libObjects[0].subject);
+   for(var i = 0; i < libObjects.length; i++){
+     if(libObjects[i].documentId == recordId){
+       libRecordRow = i;
+       subjectName = libObjects[i].subject;
+       break;
+     }   
+   }
+   
+   var subjectSheet = ss.getSheetByName(subjectName);
+   var subjectRange = subjectSheet.getRange(2, 1, subjectSheet.getLastRow() - 1, 50);
+   var recordObjects = getRowsData(subjectSheet, subjectRange);
+   var recordRow = 0;
+   
+   for(var i = 0; i < recordObjects.length; i++){
+     if(recordObjects[i].documentId == recordId){
+       recordRow = i;
+       break;
+     }   
+   }
+   //Logger.log(libObjects[0]);
+  // Logger.log(recordObjects[0]);
+   //Logger.log(recordObjects[1]);
+   //Logger.log(recordId);
+  //Logger.log(recordObjects[recordRow].documentId);
+   //Logger.log(recordObjects[1].documentId)
+  // Logger.log(recordObjects[2].documentId)
+  // Logger.log(recordObjects[3].documentId)
+   //Logger.log(libRecordRow + 2);
+   //Logger.log(recordRow + 2);
+   
+   //return;
+   
+/*GET KEY WITH VALUE COUNT
+   var count = 0;
+   for (var k in recordObjects[0]) if (recordObjects[0].hasOwnProperty(k)) ++count;
+   //Logger.log(count);
+
+//GET KEY NAMES
+   //var keys = [];
+   //for(var k in recordObjects[0]) keys.push(k);*/ 
+
+   var doc = DocumentApp.create(recordObjects[recordRow].title).addEditor(recordObjects[recordRow].author).addEditor(recordObjects[recordRow].publisher);
+   var docId = doc.getId();
+   var docUrl = doc.getUrl();
+   var title = recordObjects[recordRow].title;
+   var docFile = DocsList.getFileById(docId)
+   
+   docFile.addEditor(recordObjects[recordRow].author);
+   Logger.log(recordObjects[recordRow].author);
+   docFile.addEditor(recordObjects[recordRow].publisher);
+   Logger.log(recordObjects[recordRow].publisher);
+   var saveFolder = DocsList.getFolder('001_DOCS');
+   docFile.addToFolder(saveFolder);
+   
+   var horizStyle = {};
+   
+     horizStyle[DocumentApp.Attribute.BACKGROUND_COLOR] = "#D1D1D1"
+     horizStyle[DocumentApp.Attribute.SPACING_BEFORE] = 0;
+     horizStyle[DocumentApp.Attribute.SPACING_AFTER] = 0;
+     horizStyle[DocumentApp.Attribute.LINE_SPACING] = 1;
+   
+   var titleStyle = {};
+   
+     titleStyle[DocumentApp.Attribute.FOREGROUND_COLOR] = "#C1D82F";     
+     
+   var headerStyle = {};
+  
+     headerStyle[DocumentApp.Attribute.SPACING_AFTER] = 0;
+     headerStyle[DocumentApp.Attribute.LINE_SPACING] = 1;
+     headerStyle[DocumentApp.Attribute.MARGIN_BOTTOM] = 0;  
+  
+   var contentStyle = {};
+  
+     contentStyle[DocumentApp.Attribute.SPACING_AFTER] = 0;
+     contentStyle[DocumentApp.Attribute.SPACING_BEFORE] = 0;
+     contentStyle[DocumentApp.Attribute.LINE_SPACING] = 1;
+     contentStyle[DocumentApp.Attribute.MARGIN_TOP] = 1;
+     contentStyle[DocumentApp.Attribute.MARGIN_BOTTOM] = 1;
+     contentStyle[DocumentApp.Attribute.FONT_SIZE] = 10;
+     
+   var tableStyle = {};
+   
+   tableStyle[DocumentApp.Attribute.BORDER_COLOR] = "#D1D1D1";
+   tableStyle[DocumentApp.Attribute.PADDING_BOTTOM] = 0;
+   tableStyle[DocumentApp.Attribute.PADDING_TOP] = 0;
+   
+   var headerCellStyle = {};
+  
+   headerCellStyle[DocumentApp.Attribute.FOREGROUND_COLOR] = "#C1D82F";
+   headerCellStyle[DocumentApp.Attribute.BOLD] = true;
+   headerCellStyle[DocumentApp.Attribute.VERTICAL_ALIGNMENT] = DocumentApp.VerticalAlignment.CENTER;
+   headerCellStyle[DocumentApp.Attribute.WIDTH] = 82;
+   headerCellStyle[DocumentApp.Attribute.SPACING_AFTER] = 0;
+   headerCellStyle[DocumentApp.Attribute.LINE_SPACING] = 1;
+   
+   var contentCellStyle = {};
+   
+   contentCellStyle[DocumentApp.Attribute.FOREGROUND_COLOR] = "#00B6DE";
+   contentCellStyle[DocumentApp.Attribute.VERTICAL_ALIGNMENT] = DocumentApp.VerticalAlignment.CENTER;
+   contentCellStyle[DocumentApp.Attribute.SPACING_AFTER] = 0;
+   contentCellStyle[DocumentApp.Attribute.LINE_SPACING] = 1;
+   
+   Logger.log(docUrl);
+   
+   var body = doc.getBody();
+   
+   body.setMarginTop(36);
+   body.setMarginBottom(24);
+   //body.insertImage(0, logoFile);
+   var title = recordObjects[recordRow].title;
+   
+   var titlePara = body.appendParagraph(title).setHeading(DocumentApp.ParagraphHeading.TITLE);
+   titlePara.setAttributes(titleStyle);
+   body.appendHorizontalRule().setAttributes(horizStyle);
+   body.appendParagraph("");
+   
+   var detailCells = [
+               [headerArray[1], recordObjects[recordRow][headerKeyArray[1]]],
+               [headerArray[2], recordObjects[recordRow][headerKeyArray[2]]],
+               [headerArray[3], recordObjects[recordRow][headerKeyArray[3]]],
+               [headerArray[4], recordObjects[recordRow][headerKeyArray[4]]],
+               [headerArray[5], recordObjects[recordRow][headerKeyArray[5]]],
+               [headerArray[6], recordObjects[recordRow][headerKeyArray[6]]],
+               [headerArray[7], recordObjects[recordRow][headerKeyArray[7]]],
+               [headerArray[8], recordObjects[recordRow][headerKeyArray[8]]]
+               ];
+               
+   var detailsTable = body.appendTable(detailCells);
+   
+   detailsTable.setAttributes(tableStyle);
+   
+   detailsTable.getCell(0, 0).setAttributes(headerCellStyle);
+   detailsTable.getCell(1, 0).setAttributes(headerCellStyle);
+   detailsTable.getCell(2, 0).setAttributes(headerCellStyle);
+   detailsTable.getCell(3, 0).setAttributes(headerCellStyle);
+   detailsTable.getCell(4, 0).setAttributes(headerCellStyle);
+   detailsTable.getCell(5, 0).setAttributes(headerCellStyle);
+   detailsTable.getCell(6, 0).setAttributes(headerCellStyle);
+   detailsTable.getCell(7, 0).setAttributes(headerCellStyle);
+   
+   detailsTable.getCell(0, 1).setAttributes(contentCellStyle);
+   detailsTable.getCell(1, 1).setAttributes(contentCellStyle);
+   detailsTable.getCell(2, 1).setAttributes(contentCellStyle);
+   detailsTable.getCell(3, 1).setAttributes(contentCellStyle);
+   detailsTable.getCell(4, 1).setAttributes(contentCellStyle);
+   detailsTable.getCell(5, 1).setAttributes(contentCellStyle);
+   detailsTable.getCell(6, 1).setAttributes(contentCellStyle);
+   detailsTable.getCell(7, 1).setAttributes(contentCellStyle);
+   
+   body.appendParagraph("");
+   
+   for(var i = 9; i < 11; i++){
+   
+     var sectionHeader = body.appendParagraph(headerArray[i]).setHeading(DocumentApp.ParagraphHeading.HEADING1).setAttributes(headerStyle);
+     body.appendHorizontalRule().setAttributes(horizStyle);
+     var headerText = sectionHeader.editAsText();
+     var textToColor = headerText.findText(headerArray[i]);
+      //Logger.log("KEY__: " + keys[i]);
+      //Logger.log(textToColor.getStartOffset());
+      //Logger.log(textToColor.getEndOffsetInclusive());
+     headerText.setForegroundColor(textToColor.getStartOffset(), textToColor.getEndOffsetInclusive(), "#C1D82F");
+     
+        
+     var sectionContent = body.appendParagraph(recordObjects[recordRow][headerKeyArray[i]]);
+     sectionContent.setAttributes(contentStyle);
+     body.appendParagraph("");
+     
+   
+   };
+   
+   body.appendPageBreak();
+   
+   /*Logger.log("KEY__: " + keys[1]);
+   Logger.log("VALUE__:" + recordObjects[0][keys[1]]);
+   Logger.log(typeof recordObjects[0][keys[1]]);*/
+   
+   for(var i = 11; i < 13; i++){   
+     var sectionHeader = body.appendParagraph(headerArray[i]).setHeading(DocumentApp.ParagraphHeading.HEADING1).setAttributes(headerStyle);
+     body.appendHorizontalRule().setAttributes(horizStyle);
+     var headerText = sectionHeader.editAsText();
+     var textToColor = headerText.findText(headerArray[i]);
+      //Logger.log("KEY__: " + keys[i]);
+      //Logger.log(textToColor.getStartOffset());
+      //Logger.log(textToColor.getEndOffsetInclusive());
+     headerText.setForegroundColor(textToColor.getStartOffset(), textToColor.getEndOffsetInclusive(), "#C1D82F");     
+        
+     var sectionContent = body.appendParagraph(recordObjects[recordRow][headerKeyArray[i]]);
+     sectionContent.setAttributes(contentStyle);
+     body.appendParagraph("");  
+   };
+   
+   body.appendPageBreak();
+   
+   for(var i = 13; i < 14; i++){   
+     var sectionHeader = body.appendParagraph(headerArray[i]).setHeading(DocumentApp.ParagraphHeading.HEADING1).setAttributes(headerStyle);
+     body.appendHorizontalRule().setAttributes(horizStyle);
+     var headerText = sectionHeader.editAsText();
+     var textToColor = headerText.findText(headerArray[i]);
+      //Logger.log("KEY__: " + keys[i]);
+      //Logger.log(textToColor.getStartOffset());
+      //Logger.log(textToColor.getEndOffsetInclusive());
+     headerText.setForegroundColor(textToColor.getStartOffset(), textToColor.getEndOffsetInclusive(), "#C1D82F");     
+        
+     var sectionContent = body.appendParagraph(recordObjects[recordRow][headerKeyArray[i]]);
+     sectionContent.setAttributes(contentStyle);
+     body.appendParagraph("");  
+   };
+    
+   var learningSkills = "";
+   var personalSkills = "";
+   var thinkingSkills = "";
+   var techSkills = "";
+   
+   for(var i = 0; i < 7; i++){     
+     if(recordObjects[recordRow][skillsKeyArray[i]] == true){
+       learningSkills = learningSkills + skillsArray[i] + "\n";
+     }   
+   }
+   
+   for(var i = 7; i < 14; i++){     
+     if(recordObjects[recordRow][skillsKeyArray[i]] == true){
+       personalSkills = personalSkills + skillsArray[i] + "\n";
+     }   
+   }
+   
+   for(var i = 14; i < 17; i++){     
+     if(recordObjects[recordRow][skillsKeyArray[i]] == true){
+       thinkingSkills = thinkingSkills + skillsArray[i] + "\n";
+     }   
+   }
+   
+   for(var i = 17; i < 20; i++){     
+     if(recordObjects[0][skillsKeyArray[i]] == true){
+       techSkills = techSkills + skillsArray[i] + "\n";
+     }   
+   }   
+   
+   var patsCells = [
+                   ["Learning skills", learningSkills],
+                   ["Personal skills", personalSkills],
+                   ["Thinking skills", thinkingSkills],
+                   ["Technical skills", techSkills]
+                   ];
+   
+   
+   var patsTitle = body.appendParagraph("Personal and transferable skills").setHeading(DocumentApp.ParagraphHeading.HEADING1).setAttributes(headerStyle);
+   var patsTitleText = patsTitle.editAsText();
+   
+   textToColor = patsTitleText.findText("Personal and transferable skills");
+     patsTitleText.setForegroundColor(textToColor.getStartOffset(), textToColor.getEndOffsetInclusive(), "#C1D82F");
+     
+   body.appendHorizontalRule().setAttributes(horizStyle);
+   
+   var patsTable = body.appendTable(patsCells).setAttributes(tableStyle);
+   
+   patsTable.getCell(0, 0).setAttributes(headerCellStyle);
+   patsTable.getCell(1, 0).setAttributes(headerCellStyle);
+   patsTable.getCell(2, 0).setAttributes(headerCellStyle);
+   patsTable.getCell(3, 0).setAttributes(headerCellStyle);
+   
+   patsTable.getCell(0, 1).setAttributes(contentCellStyle);
+   patsTable.getCell(1, 1).setAttributes(contentCellStyle);
+   patsTable.getCell(2, 1).setAttributes(contentCellStyle);
+   patsTable.getCell(3, 1).setAttributes(contentCellStyle);
+   
+   //body.appendPageBreak();
+   
+   for(var i = 14; i < 22; i++){   
+      var sectionHeader = body.appendParagraph(headerArray[i]).setHeading(DocumentApp.ParagraphHeading.HEADING1).setAttributes(headerStyle);
+     body.appendHorizontalRule().setAttributes(horizStyle);
+     var headerText = sectionHeader.editAsText();
+     var textToColor = headerText.findText(headerArray[i]);
+      //Logger.log("KEY__: " + keys[i]);
+      //Logger.log(textToColor.getStartOffset());
+      //Logger.log(textToColor.getEndOffsetInclusive());
+     headerText.setForegroundColor(textToColor.getStartOffset(), textToColor.getEndOffsetInclusive(), "#C1D82F");     
+        
+     var sectionContent = body.appendParagraph(recordObjects[recordRow][headerKeyArray[i]]);
+     sectionContent.setAttributes(contentStyle);
+     body.appendParagraph("");  
+   }
+  
+
   Logger.log(recordId);
+  Logger.log(recordRow);
+  Logger.log(subjectSheet.getLastColumn());
+  subjectSheet.getRange(recordRow + 2, 50, 1, 1).setValue(docUrl);
+  subjectSheet.getRange(recordRow + 2, 9, 1, 1).setValue("Published");
+  libSheet.getRange(libRecordRow + 2, 38, 1, 1).setValue(docUrl);
+  libSheet.getRange(libRecordRow + 2, 9, 1, 1).setValue("Published"); 
+  
+  var publishedLink = app.createAnchor("Publishing of '" + title + "' completed. Click this message to open.", docUrl);
+  publishSave.setWidget(0, 0, publishedLink);
+  return app;
 
 }
+
+// HELPERS //////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //getRowsData iterates row by row in the input range and returns an array of objects.
@@ -1625,13 +2519,20 @@ function arrayTranspose(data) {
 //return date as string in DDD dd-mm-yyyy format
 function shortDate(date){
   var d = new Date(date);
-  var dayArray = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  var curr_day = d.getDay() - 1;
+  var dayArray = ['Sun', 'Mon','Tue','Wed','Thu','Fri','Sat'];
+  var curr_day = d.getDay();
   var curr_date = d.getDate();
     if(curr_date < 10){curr_date = "0" + curr_date;}
   var curr_month = d.getMonth() + 1;
     if(curr_month < 10){curr_month = "0" + curr_month;}
   var curr_year = d.getFullYear();  
-  var shortDate = dayArray[curr_day] + " " + curr_date + "-" + curr_month + "-" + curr_year;  
+  var shortDate = curr_date + "-" + curr_month + "-" + curr_year;
+  //dayArray[curr_day] + " " + 
   return (shortDate);
+}
+
+function pad(n){
+  var pad = "";  
+  if(n < 10){pad = "0" + n}else{pad = n};  
+  return pad;
 }
