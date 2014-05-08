@@ -1350,7 +1350,7 @@ function searchRecords(e){
       if(checkMatchAll == "false"){
         for(var m = 0; m < 20; m++){
           var str = "chk_" + pad(m + 1);
-          if(e.parameter[str] == libraryObjects[i][patsKeyArray[m]].toString()){
+          if(e.parameter[str] == "true" && libraryObjects[i][patsKeyArray[m]].toString() == "true"){
             checkCount = checkCount + 1;
             break;
           }else{
