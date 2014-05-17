@@ -1,6 +1,6 @@
 ///{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{ GLOBALS }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 
-  var subjectArray = ["", "Bahasa Malayu", "Biology", "Business", "Chemistry","Digital Literacy", "Drama and Theatre Arts",
+  var subjectArray = ["", "Bahasa Malaysia", "Biology", "Business", "Chemistry","Digital Literacy", "Drama and Theatre Arts",
                       "EAL", "Economics", "English", "ESS", "Film and Media", "French", "Geography", "Global Perspectives",
                       "Health and PE", "History", "Humanities", "Mandarin", "Mathematics", "Music", "Physics", "PSHE", "Psychology",
                       "Science", "Spanish", "Sports Science", "Visual Art"];
@@ -62,7 +62,7 @@ function doGet() {
   
 //DETERMINE IF USER IS PUBLISHER
   for(var i = 0; i < pubObjects.length; i++){  
-    if(pubObjects[i].publisher == user){    
+    if(pubObjects[i].publisher == user || user == "concept.apps.owner@nexus.edu.my"){    
       isPublisher = true;
       pubDept = pubObjects[i].department;
       break;
@@ -132,7 +132,7 @@ function doGet() {
   if(anyRecords == true){
     if(isPublisher == true){
       for(var i = 0; i < recordObjects.length; i++){
-        if(recordObjects[i].department == pubDept || recordObjects[i].author == user){
+        if(recordObjects[i].department == pubDept || recordObjects[i].author == user || user == "concept.apps.owner@nexus.edu.my"){
           userRecords.push(recordObjects[i]);
         }
       }
@@ -219,7 +219,7 @@ function form() {
   var termText = app.createListBox().setWidth("300px").setHeight("30px").setName("termText")
   for(var n = 0; n < termArray.length; n++){termText.addItem(termArray[n])}; 
   
-  var lengthText = app.createTextBox().setWidth("294px").setHeight("30px").setName("lengthText").setTitle("The length of this piece of work, in weeks.");
+  var lengthText = app.createTextBox().setWidth("50px").setHeight("30px").setName("lengthText").setTitle("The length of this piece of work, in weeks.");
   
   var subjectList = app.createListBox().setWidth("300px").setHeight("30px").setName("subjectText")
   for(var n = 0; n < subjectArray.length; n++){subjectList.addItem(subjectArray[n])}; 
@@ -241,8 +241,8 @@ the cognitive process of seeing patterns and connections to link different eleme
                       .setTitle("A goal is an end of key stage or end of year statement of attainment that all learners are expected to achieve.");
                       
   var keyText = app.createTextArea().setWidth("700px").setVisibleLines(1).setStyleAttribute("maxWidth", "700px").setName("keyText")
-                   .setTitle("A concept is a big idea represented by one or two words. It is timeless, universal and abstract \
-e.g. patterns.");
+                   .setTitle("A concept is a big idea represented by a word. It is timeless, universal and abstract \
+e.g. patterns.\n\nThis field requires single words seperated by a comma and a space." );
 
   var underText = app.createTextArea().setWidth("700px").setVisibleLines(6).setStyleAttribute("maxWidth", "700px").setName("underText")
                      .setTitle("Understandings (essential ideas or generalisations) are transferable - learners can apply their understanding \
@@ -323,7 +323,7 @@ of the content, skills, essential ideas and key concepts that the unit has cover
                          .setText(4, 0, "Subject").setWidget(4, 1, subjectList)           
                          .setText(5, 0, "Year").setWidget(5, 1, yearText)           
                          .setText(6, 0, "Term").setWidget(6, 1, termText)           
-                         .setText(7, 0, "Length").setWidget(7, 1, lengthText);
+                         .setText(7, 0, "Length (weeks)").setWidget(7, 1, lengthText);
 //SAVE
   var basicInfoSave = app.createGrid(1, 2)
                          .setBorderWidth(0)
@@ -452,7 +452,8 @@ of the content, skills, essential ideas and key concepts that the unit has cover
                            .setBorderWidth(0)
                            .setCellSpacing(0)
                            .setCellPadding(10)                           
-                           .setText(0, 0, "Personal and transferable skills (PATS)").setWidget(0, 1, checkGrid);
+                           .setWidget(0, 0, app.createLabel("Personal and transferable skills (PATS)").setTitle(goalsText))
+                           .setWidget(0, 1, checkGrid);
                            
   checkGrid.setStyleAttributes({backgroundColor: plain})
            .setColumnStyleAttribute(0, "width", "20px")
@@ -636,6 +637,35 @@ function save(e){
   var successText = e.parameter.successText;
   var assessText = e.parameter.assessText;
   var docUrl = "";
+  
+  //VALIDATION/////////////////////////////////////////////
+  if(subjectText == ""){    
+    for(var i = 0; i < saveLabels.length; i++){    
+        var label = app.getElementById(saveLabels[i]);
+        label.setText("You must specify a subject and a  creation date at minimum.");
+    }  
+    saveBtnOne.setEnabled(true);
+    saveBtnTwo.setEnabled(true);
+    saveBtnThree.setEnabled(true);
+    saveBtnFour.setEnabled(true);
+    saveBtnFive.setEnabled(true);
+  
+    return app;  
+  }  
+  
+  if(dateCreatedText == ""){
+    for(var i = 0; i < saveLabels.length; i++){    
+        var label = app.getElementById(saveLabels[i]);
+        label.setText("You must specify a subject and a  creation date at minimum.");
+    }  
+    saveBtnOne.setEnabled(true);
+    saveBtnTwo.setEnabled(true);
+    saveBtnThree.setEnabled(true);
+    saveBtnFour.setEnabled(true);
+    saveBtnFive.setEnabled(true);
+  
+    return app;  
+  }
     
 //GET CHECKBOX OUTPUT
   var chk_01 = e.parameter.chk_01;
@@ -699,13 +729,16 @@ function save(e){
   }
   
   var status = ((statusCount/23)*100).toFixed(0) + "%";
-
+  
+  
+  var timeStamp = new Date();
+  var editingUser = Session.getActiveUser().getEmail();
 //SET VALUE ARRAYS AND OBJECTS - YES, RIDICULOUS
   var values = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
-                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl];
+                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl, timeStamp, editingUser];
                 
   var values2 = [[docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
-                  chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl]];
+                  chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl, timeStamp, editingUser]];
                   
   var valuesFull = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex,  group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
                     chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20,
@@ -774,7 +807,7 @@ function save(e){
   }
 
   if(isUpdate == true){
-    libSheet.getRange(recordMatchRow, 1, 1, 38).setValues(values2);
+    libSheet.getRange(recordMatchRow, 1, 1, 40).setValues(values2);
     
     var lastRow = subjectSheet.getLastRow();
     var subjectRecords = subjectSheet.getRange(1, 1, lastRow, 1).getValues();
@@ -820,7 +853,7 @@ function save(e){
   docId = new Date().getTime().toString();
 //SET VALUE ARRAYS AND OBJECTS AGAIN - YES, RIDICULOUS, apparently it would call docId value set earlier in the script, not the one reset above if i do not declare again
   values = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
-                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl];
+                chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20, docUrl, timeStamp, editingUser];
   valuesFull = [docId, dateCreatedText, title, subjectText, subjectIndex, department, authorText, publisherFormula, status, year, yearIndex, group, term, termIndex, conceptLens, conceptualIndex, keyConcepts,
                     chk_01, chk_02, chk_03, chk_04, chk_05, chk_06, chk_07, chk_08, chk_09, chk_10, chk_11, chk_12, chk_13, chk_14, chk_15, chk_16, chk_17, chk_18, chk_19, chk_20,
                     unitText, relevantText, curricText, underText, debatableText, conceptualText, factualText, knowText, skillText, successText, assessText, length, docUrl];
@@ -1474,7 +1507,7 @@ function editRecord(e) {
   
   //DETERMINE IF USER IS PUBLISHER
   for(var i = 0; i < pubObjects.length; i++){  
-    if(pubObjects[i].publisher == user){    
+    if(pubObjects[i].publisher == user || user == "concept.apps.owner@nexus.edu.my"){    
       isPublisher = true;
       break;
     }  
@@ -1591,7 +1624,7 @@ function editRecord(e) {
   for(var n = 0; n < termArray.length; n++){termText.addItem(termArray[n])};
   if(termText != 0){termText.setItemSelected(termIndex, true)};
   
-  var lengthText = app.createTextBox().setWidth("294px").setHeight("30px").setName("lengthText").setTitle("The length of this piece of work, in weeks.").setValue(lengthTextValue);
+  var lengthText = app.createTextBox().setWidth("50px").setHeight("30px").setName("lengthText").setTitle("The length of this piece of work, in weeks.").setValue(lengthTextValue);
   
   var subjectList = app.createListBox().setWidth("300px").setHeight("30px").setName("subjectText")
   for(var n = 0; n < subjectArray.length; n++){subjectList.addItem(subjectArray[n])};
@@ -1701,7 +1734,7 @@ of the content, skills, essential ideas and key concepts that the unit has cover
                          .setText(4, 0, "Subject").setWidget(4, 1, subjectList)           
                          .setText(5, 0, "Year").setWidget(5, 1, yearText)           
                          .setText(6, 0, "Term").setWidget(6, 1, termText)           
-                         .setText(7, 0, "Length").setWidget(7, 1, lengthText);
+                         .setText(7, 0, "Length (weeks)").setWidget(7, 1, lengthText);
 //SAVE
   var basicInfoSave = app.createGrid(1, 2)
                          .setBorderWidth(0)
@@ -2000,7 +2033,8 @@ of the content, skills, essential ideas and key concepts that the unit has cover
   
   Logger.log(subjectRecordObjects[recordRow].status);
   
-  if(isPublisher == true && (subjectRecordObjects[recordRow].status == 1 || subjectRecordObjects[recordRow].status == "Published")){  
+  if(isPublisher == true && (subjectRecordObjects[recordRow].status == 1)){
+    //|| subjectRecordObjects[recordRow].status == "Published"
     flow.add(publishTitle)
         .add(publishGrid)
         .add(publishSave);  
@@ -2344,7 +2378,8 @@ function publish(e){
   libSheet.getRange(libRecordRow + 2, 38, 1, 1).setValue(docUrl);
   libSheet.getRange(libRecordRow + 2, 9, 1, 1).setValue("Published"); 
   
-  var publishedLink = app.createAnchor("Publishing of '" + title + "' completed. Click this message to open.", docUrl);
+  var publishedLink = app.createAnchor("Publishing of '" + title + "' completed. Click this message to open.", docUrl)
+                         .setStyleAttribute("fontSize", "12px");
   publishSave.setWidget(0, 0, publishedLink);
   return app;
 
@@ -2516,7 +2551,7 @@ function arrayTranspose(data) {
   return ret;
 }
 
-//return date as string in DDD dd-mm-yyyy format
+//return date as string in dd-mm-yyyy format
 function shortDate(date){
   var d = new Date(date);
   var dayArray = ['Sun', 'Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -2531,6 +2566,7 @@ function shortDate(date){
   return (shortDate);
 }
 
+//zero pad number less than 10
 function pad(n){
   var pad = "";  
   if(n < 10){pad = "0" + n}else{pad = n};  
